@@ -14,8 +14,24 @@ if [ $(id -u) -ne 0 ]; then
     exit 1
 fi
 
+password=''
+
+while true
+do
+    echo -n 'New password: '
+    read -s password
+    echo -en '\nRe-enter new password: '
+    read -s check
+    echo
+    if [ "$password" == "$check" ]; then
+        break
+    else
+        echo 'Passwords do not match!'
+    fi
+done
+
 # Make sure that NOBODY can access the server without a password
-mysql -e "UPDATE mysql.user SET Password = PASSWORD('CHANGEME') WHERE User = 'root'"
+mysql -e "UPDATE mysql.user SET Password = PASSWORD("$password") WHERE User = 'root'"
 # Kill the anonymous users
 mysql -e "DROP USER ''@'localhost'"
 # Because our hostname varies we'll use some Bash magic here.
@@ -24,4 +40,3 @@ mysql -e "DROP USER ''@'$(hostname)'"
 mysql -e "DROP DATABASE test"
 # Make our changes take effect
 mysql -e "FLUSH PRIVILEGES"
-# Any subsequent tries to run queries this way will get access denied because lack of usr/pwd param
